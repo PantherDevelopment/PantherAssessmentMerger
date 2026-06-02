@@ -79,12 +79,12 @@ jobs:
       - name: Notarize DMG
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           xcrun notarytool submit "dist/Panther-Assessment-Merger-macOS.dmg" \
             --apple-id "$APPLE_ID" \
-            --password "$APPLE_APP_PASSWORD" \
+            --password "$APPLE_ID_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
             --wait
           xcrun stapler staple "dist/Panther-Assessment-Merger-macOS.dmg"
