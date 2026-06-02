@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+build/
+dist/
+*.egg-info/
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# macOS
+.DS_Store
+.AppleDouble
+._*
+*.p12
+*.dmg
+*.app
+!panther_icon.icns
+
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.exe
+!panther_icon.ico
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+
+# Data files (FERPA protected)
+*.xlsx
+*.xls
+*.csv
