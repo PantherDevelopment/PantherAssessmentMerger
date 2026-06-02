@@ -35,7 +35,7 @@ jobs:
 
       - name: Build macOS app
         run: |
-          pyinstaller --onefile --windowed \
+          pyinstaller --onedir --windowed \
             --name "Panther Assessment Merger" \
             --icon=panther_icon.icns \
             assessment_merger.py
