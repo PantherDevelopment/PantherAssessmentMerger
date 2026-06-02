@@ -19,7 +19,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont, QColor, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 
-VERSION = "1.0.5"
+VERSION = "1.0.6"
 GITHUB_REPO = "PantherDevelopment/PantherAssessmentMerger"
 SEMESTER_ORDER = {"Fall": 0, "Spring": 1, "Summer": 2}
 
