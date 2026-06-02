@@ -21,7 +21,7 @@ All processing happens locally on your machine — no data is ever uploaded or s
 
 [📥 Download Latest Release](https://github.com/DarbyP/panther-assessment-merger/releases/latest)
 
-- **macOS**: Download `Panther-Assessment-Merger-macOS.dmg` (works on both Intel and Apple Silicon)
+- **macOS**: Download `Panther-Assessment-Merger-macOS.dmg` (Apple Silicon — M1/M2/M3/M4)
 - **Windows**: Download `Panther-Assessment-Merger-Windows.zip`
 
 ### macOS
@@ -151,7 +151,7 @@ python3 assessment_merger.py
 
 | Platform | Requirement |
 |----------|-------------|
-| macOS | 10.15 (Catalina) or later, Intel or Apple Silicon |
+| macOS | Apple Silicon (M1 or later) |
 | Windows | Run from source only (Python 3.8+, PyQt6, pandas, openpyxl) |
 
 ---
