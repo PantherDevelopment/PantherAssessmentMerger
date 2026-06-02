@@ -19,8 +19,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont, QColor, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 
-VERSION = "1.0.6"
-GITHUB_REPO = "PantherDevelopment/PantherAssessmentMerger"
+VERSION = "1.0.0"  # Replaced automatically by GitHub Actions at build time
+GITHUB_REPO = "DarbyP/panther-assessment-merger"
 SEMESTER_ORDER = {"Fall": 0, "Spring": 1, "Summer": 2}
 
 

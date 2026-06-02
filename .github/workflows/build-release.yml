@@ -18,6 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set version from tag
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          sed -i '' "s/VERSION = \".*\"/VERSION = \"$VERSION\"/" assessment_merger.py
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -52,8 +57,15 @@ jobs:
             -S apple-tool:,apple:,codesign: \
             -s -k actions build.keychain
 
-      - name: Sign the app
+      - name: Sign all binaries inside app
         run: |
+          find "dist/Panther Assessment Merger.app" \
+            -type f \( -name "*.so" -o -name "*.dylib" -o -name "Python" \) \
+            -print0 | xargs -0 -I{} \
+            codesign --force --verify \
+              --sign "Developer ID Application" \
+              --options runtime "{}"
+
           codesign --deep --force --verify --verbose \
             --sign "Developer ID Application" \
             --options runtime \
@@ -71,7 +83,6 @@ jobs:
             "dist/Panther-Assessment-Merger-macOS.dmg" \
             "dist/Panther Assessment Merger.app" || true
 
-          # Fallback if create-dmg fails
           if [ ! -f "dist/Panther-Assessment-Merger-macOS.dmg" ]; then
             hdiutil create -volname "Panther Assessment Merger" \
               -srcfolder "dist/Panther Assessment Merger.app" \
@@ -96,3 +107,45 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/Panther-Assessment-Merger-macOS.dmg
+
+  # ─────────────────────────────────────────────
+  #  Windows
+  # ─────────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version from tag
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          (Get-Content assessment_merger.py) -replace 'VERSION = ".*"', "VERSION = `"$version`"" | Set-Content assessment_merger.py
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyQt6 pandas openpyxl pyinstaller
+
+      - name: Build Windows executable
+        run: |
+          pyinstaller --onefile --windowed `
+            --name "Panther Assessment Merger" `
+            --icon=panther_icon.ico `
+            assessment_merger.py
+
+      - name: Create ZIP
+        run: |
+          Compress-Archive `
+            -Path "dist\Panther Assessment Merger.exe" `
+            -DestinationPath "dist\Panther-Assessment-Merger-Windows.zip"
+
+      - name: Upload Windows ZIP to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Panther-Assessment-Merger-Windows.zip
