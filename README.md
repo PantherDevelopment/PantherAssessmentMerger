@@ -2,8 +2,6 @@
 
 A desktop application for merging faculty course assessment data into departmental master spreadsheets and combining semester files into yearly reports.
 
-![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
-
 ## Overview
 
 Panther Assessment Merger streamlines two common assessment coordinator tasks:
@@ -60,7 +58,7 @@ Use this tab to add faculty assessment data into the departmental master spreads
 Click **"Load Master File"** and select the departmental master spreadsheet (`.xlsx`). The file must contain a `STUDENT_ID` column.
 
 #### Step 2 — Load Your Data File(s)
-Click **"Add Data File(s)"** and select one or more faculty data files. You can select multiple files at once using Cmd+Click (Mac) or Ctrl+Click (Windows). Each file must contain a `STUDENT_ID` column.
+Click **"Add Data File(s)"** and select one or more faculty data files. You can select multiple files at once using Cmd+Click (Mac) or Ctrl+Click (Windows). Each file must contain a `STUDENT_ID` column and an assessment item column that matches that item in your master file (see Data Format below).
 
 Files can contain data for any course or mix of courses — the app figures out what matches automatically.
 
@@ -78,7 +76,7 @@ Click **"Merge & Save"**. The master file is updated in place — all formatting
 
 The Status Log reports:
 - Number of students updated
-- Student IDs found in your data but not in the master (worth investigating)
+- Student IDs found in your data but not in the master 
 
 ---
 
@@ -99,9 +97,11 @@ Use the dropdown to tag each file:
 | Summer | Summer semester master file |
 | Already Combined | A file already containing merged Fall + Spring data. Use only when adding Summer to an existing combined file. Only one allowed per operation. |
 
-**Priority order (lowest → highest):** Fall → Spring → Summer → Already Combined
+**Priority order (lowest → highest):** Fall → Spring → Summer 
 
 For students appearing in multiple files, data from the higher-priority file is used, column by column. Blank cells never overwrite existing data.
+
+Already Combined' is a special option only for adding Summer to an existing Fall/Spring file. Only one 'Already Combined' file is allowed."
 
 #### Step 3 — Save Yearly File
 Click **"Combine & Save Yearly File"** and choose a save location. All students from all semester files are included in the output. Original files are not modified.
@@ -120,10 +120,6 @@ STUDENT_ID | PSY3421_ExamQ_1.1.2 | PSY3421_ExamQ_1.2.1 | PSY3421_BMP_Methods_1.2
 123456     | 85                  | 90                  | 78
 234567     | 92                  | 88                  | 95
 ```
-
-Column name format: `COURSE_AssessmentType_OutcomeID`
-- `PSY3421_ExamQ_1.1.2` → PSY3421 course, exam question, outcome 1.1.2
-- `PSY4514_Methods_3.1.1` → PSY4514 course, methods assessment, outcome 3.1.1
 
 ---
 
