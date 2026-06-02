@@ -20,7 +20,7 @@ from PyQt6.QtGui import QFont, QColor, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 
 VERSION = "1.0.0"  # Replaced automatically by GitHub Actions at build time
-GITHUB_REPO = "DarbyP/panther-assessment-merger"
+GITHUB_REPO = "PantherDevelopment/PantherAssessmentMerger"
 SEMESTER_ORDER = {"Fall": 0, "Spring": 1, "Summer": 2}
 
 
@@ -200,7 +200,12 @@ class MergeTab(QWidget):
 
             file_item.setExpanded(True)
             for i in range(file_item.childCount()):
-                file_item.child(i).setExpanded(True)
+                child = file_item.child(i)
+                # Collapse unmatched columns, expand matched
+                if "not in master" in child.text(0):
+                    child.setExpanded(False)
+                else:
+                    child.setExpanded(True)
 
         self.merge_btn.setEnabled(any_matches)
         if not any_matches:
