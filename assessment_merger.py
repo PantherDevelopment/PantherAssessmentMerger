@@ -47,74 +47,45 @@ class UpdateChecker(QThread):
 # ─────────────────────────────────────────────
 #  Helpers
 # ─────────────────────────────────────────────
-def find_student_id_column(columns):
-    """Find and return the student ID column name from a list of columns.
-    Returns (matched_col, normalized) or (None, None) if not found."""
+def _normalize_col_name(col):
+    """Collapse a column name to a canonical form for matching:
+    strip whitespace, lowercase, collapse spaces/dashes to underscores."""
+    return ' '.join(col.strip().split()).lower().replace(' ', '_').replace('-', '_')
+
+
+def find_matching_column(columns, target):
+    """Find a column matching target (e.g. 'STUDENT_ID') regardless of
+    case, surrounding whitespace, internal spacing, or dash/underscore style."""
+    target_normalized = _normalize_col_name(target)
     for col in columns:
-        normalized = col.strip().lower().replace(' ', '_').replace('-', '_')
-        if normalized == 'student_id':
+        if _normalize_col_name(col) == target_normalized:
             return col
     return None
 
 
+def normalize_columns(df, required_columns):
+    """Rename any columns in df that match required_columns (case/spacing/
+    separator-insensitive) to their canonical form. No prompting — applies
+    automatically. Returns the updated dataframe."""
+    rename_map = {}
+    for required in required_columns:
+        if required in df.columns:
+            continue
+        matched = find_matching_column(df.columns, required)
+        if matched:
+            rename_map[matched] = required
+    if rename_map:
+        df = df.rename(columns=rename_map)
+    return df
+
+
 def normalize_student_id(df, source_name, parent_widget):
-    """Rename student ID column to STUDENT_ID if found under a different name.
+    """Ensure df has a STUDENT_ID column, auto-mapping common variants
+    (Student ID, STUDENT ID, student_id, etc.) with no user prompt.
     Returns (success, df)."""
-    if 'STUDENT_ID' in df.columns:
-        return True, df
+    df = normalize_columns(df, ['STUDENT_ID'])
+    return ('STUDENT_ID' in df.columns), df
 
-    matched = find_student_id_column(df.columns)
-    if matched:
-        reply = QMessageBox.question(parent_widget,
-            "Confirm Student ID Column",
-            f"{source_name}\n\n"
-            f"No 'STUDENT_ID' column found, but found '{matched}'.\n\n"
-            f"Use '{matched}' as the Student ID column?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        )
-        if reply == QMessageBox.StandardButton.Yes:
-            df = df.rename(columns={matched: 'STUDENT_ID'})
-            return True, df
-        else:
-            return False, df
-
-    return False, df
-
-
-
-# ─────────────────────────────────────────────
-#  Helpers
-# ─────────────────────────────────────────────
-def find_student_id_column(columns):
-    """Find student ID column regardless of case/spacing/separator."""
-    for col in columns:
-        normalized = col.strip().lower().replace(' ', '_').replace('-', '_')
-        if normalized == 'student_id':
-            return col
-    return None
-
-
-def normalize_student_id(df, source_name, parent_widget):
-    """Rename student ID column variant to STUDENT_ID. Returns (success, df)."""
-    if 'STUDENT_ID' in df.columns:
-        return True, df
-
-    matched = find_student_id_column(df.columns)
-    if matched:
-        reply = QMessageBox.question(parent_widget,
-            "Confirm Student ID Column",
-            f"{source_name}\n\n"
-            f"No 'STUDENT_ID' column found, but found '{matched}'.\n\n"
-            f"Use '{matched}' as the Student ID column?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        )
-        if reply == QMessageBox.StandardButton.Yes:
-            df = df.rename(columns={matched: 'STUDENT_ID'})
-            return True, df
-        else:
-            return False, df
-
-    return False, df
 
 
 # ─────────────────────────────────────────────
@@ -192,6 +163,7 @@ class MergeTab(QWidget):
             return
         try:
             self.master_df = pd.read_excel(file_path)
+            self.master_df.columns = [str(c).strip() for c in self.master_df.columns]
             self.master_path = Path(file_path)
             ok, self.master_df = normalize_student_id(self.master_df, self.master_path.name, self)
             if not ok:
@@ -221,12 +193,12 @@ class MergeTab(QWidget):
         for file_path in file_paths:
             try:
                 df = pd.read_csv(file_path) if file_path.endswith('.csv') else pd.read_excel(file_path)
+                df.columns = [str(c).strip() for c in df.columns]
+                df = normalize_columns(df, list(self.master_columns) + ['STUDENT_ID'])
                 ok, df = normalize_student_id(df, Path(file_path).name, self)
                 if not ok:
                     QMessageBox.warning(self, "Missing Column",
                         f"{Path(file_path).name}: could not identify a Student ID column — skipped")
-                    continue
-                if ok and 'STUDENT_ID' not in df.columns:
                     continue
                 self.loaded_files.append({'path': Path(file_path), 'df': df})
                 self.log(f"[Merge] Loaded: {Path(file_path).name} ({len(df)} students)")
@@ -304,7 +276,10 @@ class MergeTab(QWidget):
             from openpyxl import load_workbook
             wb = load_workbook(self.master_path)
             ws = wb.active
-            headers = {cell.value: col_idx for col_idx, cell in enumerate(ws[1], start=1) if cell.value}
+            headers = {
+                str(cell.value).strip(): col_idx
+                for col_idx, cell in enumerate(ws[1], start=1) if cell.value
+            }
             if 'STUDENT_ID' not in headers:
                 QMessageBox.warning(self, "Error", "STUDENT_ID column not found in master file")
                 return
@@ -325,7 +300,7 @@ class MergeTab(QWidget):
                     found_row = student_row_map.get(sid)
                     if found_row:
                         for col in file_info['matched_cols']:
-                            if pd.notna(user_row.get(col)):
+                            if col in headers and pd.notna(user_row.get(col)):
                                 ws.cell(found_row, headers[col]).value = user_row[col]
                         total_updated.add(sid)
                     else:
@@ -424,6 +399,7 @@ class YearlyTab(QWidget):
         for file_path in file_paths:
             try:
                 df = pd.read_excel(file_path)
+                df.columns = [str(c).strip() for c in df.columns]
                 ok, df = normalize_student_id(df, Path(file_path).name, self)
                 if not ok:
                     QMessageBox.warning(self, "Missing Column",
