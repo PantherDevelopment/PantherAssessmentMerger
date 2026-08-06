@@ -284,11 +284,28 @@ class MergeTab(QWidget):
                 QMessageBox.warning(self, "Error", "STUDENT_ID column not found in master file")
                 return
             student_id_col = headers['STUDENT_ID']
+            # Normalize master IDs to stripped strings for reliable matching
             student_row_map = {
-                ws.cell(r, student_id_col).value: r
+                str(ws.cell(r, student_id_col).value).strip(): r
                 for r in range(2, ws.max_row + 1)
                 if ws.cell(r, student_id_col).value is not None
             }
+
+            # Diagnostic: check for actual overlap
+            all_data_ids = set()
+            for file_info in self.loaded_files:
+                if file_info['matched_cols']:
+                    all_data_ids.update(str(v).strip() for v in file_info['df']['STUDENT_ID'])
+            overlap = all_data_ids & set(student_row_map.keys())
+            self.log(f"[Merge] Master has {len(student_row_map)} students, data has {len(all_data_ids)} students")
+            self.log(f"[Merge] Students found in both: {len(overlap)}")
+            if len(overlap) == 0 and all_data_ids:
+                # Show a specific ID from data and check what's in master
+                sample_id = next(iter(all_data_ids))
+                self.log(f"[Merge] Sample data ID repr: {repr(sample_id)}")
+                master_sample_key = next(iter(student_row_map.keys()))
+                self.log(f"[Merge] Sample master ID repr: {repr(master_sample_key)}")
+
             total_updated = set()
             all_missing = set()
             for file_info in self.loaded_files:
@@ -296,7 +313,8 @@ class MergeTab(QWidget):
                     continue
                 df = file_info['df'].drop_duplicates(subset=['STUDENT_ID'], keep='last')
                 for _, user_row in df.iterrows():
-                    sid = user_row['STUDENT_ID']
+                    # Normalize data file ID to string for matching
+                    sid = str(user_row['STUDENT_ID']).strip()
                     found_row = student_row_map.get(sid)
                     if found_row:
                         for col in file_info['matched_cols']:
