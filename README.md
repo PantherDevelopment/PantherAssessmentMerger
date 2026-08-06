@@ -92,12 +92,12 @@ Use the dropdown to tag each file:
 
 | Type | Description |
 |------|-------------|
+| Summer | Summer semester master file |
 | Fall | Fall semester master file |
 | Spring | Spring semester master file |
-| Summer | Summer semester master file |
-| Already Combined | A file already containing merged Fall + Spring data. Use only when adding Summer to an existing combined file. Only one allowed per operation. |
+| Already Combined | A file already containing merged Summer + Fall data. Use only when adding Spring to an existing combined file. Only one allowed per operation. |
 
-**Priority order (lowest → highest):** Fall → Spring → Summer 
+**Priority order (lowest → highest):** Summer → Fall → Spring 
 
 For students appearing in multiple files, data from the higher-priority file is used, column by column. Blank cells never overwrite existing data.
 
