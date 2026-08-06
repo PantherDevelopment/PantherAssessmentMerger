@@ -21,7 +21,7 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal
 
 VERSION = "1.0.0"  # Replaced automatically by GitHub Actions at build time
 GITHUB_REPO = "PantherDevelopment/PantherAssessmentMerger"
-SEMESTER_ORDER = {"Fall": 0, "Spring": 1, "Summer": 2}
+SEMESTER_ORDER = {"Summer": 0, "Fall": 1, "Spring": 2}
 
 
 class UpdateChecker(QThread):
@@ -341,8 +341,8 @@ class YearlyTab(QWidget):
         add_layout = QVBoxLayout()
         info_label = QLabel(
             "Load the semester master files you want to combine. "
-            "Use 'Already Combined' for a file that contains combined data from Fall and Spring. "
-            "Only use this option to add Summer to a combined Fall/Spring dataset."
+            "Use 'Already Combined' for a file that contains combined data from Summer and Fall. "
+            "Only use this option to add Spring to a combined Summer/Fall dataset."
         )
         info_label.setWordWrap(True)
         info_label.setStyleSheet("color: #555; padding: 4px;")
@@ -364,9 +364,9 @@ class YearlyTab(QWidget):
         assign_group = QGroupBox("Step 2: Assign Type to Each File")
         assign_layout = QVBoxLayout()
         assign_layout.addWidget(QLabel(
-            "Semester priority order (lowest to highest): Fall → Spring → Summer → Already Combined.\n"
-            "Only one 'Already Combined' file is allowed. It will be treated as earlier data, "
-            "overwritten by any single-semester file."
+            "Priority order: Summer → Fall → Spring (Spring is most recent and overwrites earlier semesters).\n"
+            "'Already Combined' is a special option only for adding Spring to an existing Summer/Fall file. "
+            "Only one 'Already Combined' file is allowed."
         ))
         self.file_table = QTableWidget(0, 3)
         self.file_table.setHorizontalHeaderLabels(["File", "Students", "Type"])
@@ -444,11 +444,11 @@ class YearlyTab(QWidget):
                 QMessageBox.warning(self, "Invalid Selection",
                     "Only one 'Already Combined' file can be used at a time.\n\n"
                     "Please tag only one file as 'Already Combined' and set the other(s) "
-                    "to their specific semester (Fall, Spring, or Summer).")
+                    "to their specific semester (Summer, Fall, or Spring).")
                 return
 
-            # Priority order: Fall=0, Spring=1, Summer=2, Already Combined=3 (highest, processed last)
-            order = {"Fall": 0, "Spring": 1, "Summer": 2, "Already Combined": 3}
+            # Priority order: Summer=0, Fall=1, Spring=2, Already Combined=3 (processed last)
+            order = {"Summer": 0, "Fall": 1, "Spring": 2, "Already Combined": 3}
             sorted_files = sorted(self.semester_files, key=lambda x: order.get(x['semester'], 99))
 
             self.log(f"[Yearly] Processing order: {chr(32).join(f['path'].name + ' (' + f['semester'] + ')' for f in sorted_files)}")
@@ -549,10 +549,10 @@ Click "Add File(s)" and select the semester master files to combine.<br><br>
 Use the dropdown next to each file to indicate which semester it represents: 
 Fall, Spring, Summer, or Already Combined.<br><br>
 
-Use <b>"Already Combined"</b> only when a file already contains merged data from Fall and Spring 
-and you need to add Summer data to it. Only one "Already Combined" file is allowed per operation.<br><br>
+Use <b>"Already Combined"</b> only when a file already contains merged data from Summer and Fall 
+and you need to add Spring data to it. Only one "Already Combined" file is allowed per operation.<br><br>
 
-Priority order (lowest to highest): Fall → Spring → Summer → Already Combined. 
+Priority order (lowest to highest): Summer → Fall → Spring → Already Combined. 
 For students appearing in multiple files, data from the higher-priority file will be used 
 (column by column — blank cells never overwrite existing data).<br><br>
 
